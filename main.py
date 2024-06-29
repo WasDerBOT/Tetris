@@ -11,9 +11,9 @@ green = (0, 255, 0)
 blue = (0, 0, 255)
 
 # Constants
-FPS = 1
+FPS = 60
 BlockSize = 40
-g = 1  # Falling speed
+g = 3  # Falling speed
 
 # Tetrominos
 
@@ -128,13 +128,13 @@ class Frame:
         pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.size.x, self.size.y), 2)
 
     def CheckBorderCollision(self, block):
-        if block.position.y + block.velocity.y / FPS > self.position.y + self.size.y:
+        if block.position.y + block.velocity.y / FPS * g + BlockSize > self.position.y + self.size.y:
             return True
         return False
 
     def CheckBlockCollision(self, block, StaticBlocks):
         for static_block in StaticBlocks:
-            if block.position + block.velocity == static_block.position:
+            if block.position + block.velocity / FPS * g == static_block.position:
                 return True
         return False
 
@@ -170,12 +170,10 @@ while running:
 
     # Update
     for block in ActiveBlocks:
-        block.position += block.velocity / FPS
+        block.position += block.velocity / FPS * g
         block.draw()
         if Frame.CheckBorderCollision(MainFrame, block):
-            block.position -= block.velocity
             block.velocity = Vector(0, 0)
-            block.draw()
             ActiveBlocks.remove(block)
             StaticBlocks.append(block)
     for block in StaticBlocks:
