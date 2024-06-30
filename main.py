@@ -2,8 +2,7 @@ import pygame
 
 pygame.init()
 
-# TODO
-# fix falling onto block
+
 
 
 # Colors
