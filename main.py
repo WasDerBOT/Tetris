@@ -2,6 +2,10 @@ import pygame
 
 pygame.init()
 
+# TODO
+# fix falling onto block
+
+
 # Colors
 
 white = (255, 255, 255)
@@ -13,7 +17,7 @@ blue = (0, 0, 255)
 # Constants
 FPS = 60
 BlockSize = 40
-g = 3  # Falling speed
+g = 10  # Falling speed
 
 # Tetrominos
 
@@ -134,7 +138,7 @@ class Frame:
 
     def CheckBlockCollision(self, block, StaticBlocks):
         for static_block in StaticBlocks:
-            if block.position + block.velocity / FPS * g == static_block.position:
+            if static_block.position.x == block.position.x and static_block.position.y - block.position.y <= BlockSize:
                 return True
         return False
 
@@ -152,7 +156,6 @@ def SpawnBlocks(Figure, MainFrame=Frame(black, Vector(BlockSize, BlockSize), Vec
                     MainFrame.position.y + i * BlockSize), Vector(0, BlockSize)))
 
 
-SpawnBlocks(stick)
 MainFrame = Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, BlockSize * 20))
 
 # Filling screen
@@ -162,6 +165,9 @@ pygame.display.flip()
 running = True
 while running:
     for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_w:
+                SpawnBlocks(Flipped_L)
         if event.type == pygame.QUIT:
             running = False
 
@@ -171,11 +177,17 @@ while running:
     # Update
     for block in ActiveBlocks:
         block.position += block.velocity / FPS * g
+    # Check collision
+    for block in ActiveBlocks:
+        if MainFrame.CheckBorderCollision(block) or MainFrame.CheckBlockCollision(block,
+                                                                                  StaticBlocks):
+            for activeblock in ActiveBlocks:
+                StaticBlocks.append(activeblock)
+            ActiveBlocks.clear()
+            break
+    # Draw
+    for block in ActiveBlocks:
         block.draw()
-        if Frame.CheckBorderCollision(MainFrame, block):
-            block.velocity = Vector(0, 0)
-            ActiveBlocks.remove(block)
-            StaticBlocks.append(block)
     for block in StaticBlocks:
         block.draw()
 
