@@ -2,9 +2,6 @@ import pygame
 
 pygame.init()
 
-
-
-
 # Colors
 
 white = (255, 255, 255)
@@ -17,6 +14,7 @@ blue = (0, 0, 255)
 FPS = 60
 BlockSize = 40
 g = 10  # Falling speed
+m = 1  # Moving to the side
 
 # Tetrominos
 
@@ -132,20 +130,30 @@ class Frame:
 
     def CheckBorderCollision(self, block):
         if block.position.y + block.velocity.y / FPS * g + BlockSize > self.position.y + self.size.y:
-            return True
+            return 'bottom'
+        if block.position.x + block.velocity.y / FPS * g + BlockSize > self.position.x + self.size.x:
+            return 'right'
+        if block.position.x + block.velocity.y / FPS * g - BlockSize < self.position.x:
+            return 'left'
+
         return False
 
     def CheckBlockCollision(self, block, StaticBlocks):
         for static_block in StaticBlocks:
-            if static_block.position.x == block.position.x and static_block.position.y - block.position.y <= BlockSize:
-                return True
+            if static_block.position.x == block.position.x and static_block.position.y - block.position.y <= BlockSize * 0.95:
+                return 'bottom'
+
+
         return False
 
 
 ActiveBlocks = []
 StaticBlocks = []
+CurrentPiece = stick
+MovingRight = False
+MovingLeft = False
 
-
+# Block operations
 def SpawnBlocks(Figure, MainFrame=Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, BlockSize * 20))):
     for i in range(len(Figure)):
         for j in range(len(Figure[i])):
@@ -155,18 +163,51 @@ def SpawnBlocks(Figure, MainFrame=Frame(black, Vector(BlockSize, BlockSize), Vec
                     MainFrame.position.y + i * BlockSize), Vector(0, BlockSize)))
 
 
+def MoveLeft():
+    for block in ActiveBlocks:
+        block.position -= Vector(BlockSize, 0)
+    global MovingLeft
+    MovingLeft = False
+
+
+def MoveRight():
+    for block in ActiveBlocks:
+        block.position += Vector(BlockSize, 0)
+    global MovingRight
+    MovingRight = False
+
+
+def Rotate():
+    pass
+
+
 MainFrame = Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, BlockSize * 20))
 
 # Filling screen
-screen.fill((255, 255, 255))
+screen.fill(white)
 pygame.display.flip()
 # Main loop
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                SpawnBlocks(Flipped_L)
+            if event.key == pygame.K_q:
+                SpawnBlocks(L)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_a:
+                MovingLeft = True
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_d:
+                MovingRight = True
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_a:
+                MovingLeft = False
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_d:
+                MovingRight = False
+
         if event.type == pygame.QUIT:
             running = False
 
@@ -174,16 +215,22 @@ while running:
     screen.fill((255, 255, 255))
 
     # Update
+
     for block in ActiveBlocks:
         block.position += block.velocity / FPS * g
     # Check collision
     for block in ActiveBlocks:
-        if MainFrame.CheckBorderCollision(block) or MainFrame.CheckBlockCollision(block,
-                                                                                  StaticBlocks):
+        if MainFrame.CheckBorderCollision(block) == 'bottom' or MainFrame.CheckBlockCollision(block,
+                                                                                              StaticBlocks) == 'bottom':
             for activeblock in ActiveBlocks:
                 StaticBlocks.append(activeblock)
             ActiveBlocks.clear()
             break
+
+    if MovingRight:
+        MoveRight()
+    if MovingLeft:
+        MoveLeft()
     # Draw
     for block in ActiveBlocks:
         block.draw()
