@@ -1,4 +1,5 @@
 import pygame
+import random
 
 pygame.init()
 
@@ -61,7 +62,7 @@ T = [
     [0, 0, 0, 0],
     [0, 0, 0, 0]
 ]
-
+Pieces = [stick, L, Flipped_L, Z, Flipped_Z, Square, T]
 # Pygame defines
 
 screen = pygame.display.set_mode((12 * BlockSize, 22 * BlockSize))
@@ -131,18 +132,24 @@ class Frame:
     def CheckBorderCollision(self, block):
         if block.position.y + block.velocity.y / FPS * g + BlockSize > self.position.y + self.size.y:
             return 'bottom'
-        if block.position.x + block.velocity.y / FPS * g + BlockSize > self.position.x + self.size.x:
+        if block.position.x + BlockSize >= self.position.x + self.size.x:
             return 'right'
-        if block.position.x + block.velocity.y / FPS * g - BlockSize < self.position.x:
+        if block.position.x <= self.position.x:
             return 'left'
 
         return False
 
     def CheckBlockCollision(self, block, StaticBlocks):
         for static_block in StaticBlocks:
-            if static_block.position.x == block.position.x and static_block.position.y - block.position.y <= BlockSize * 0.95:
+            if static_block.position.x == block.position.x and abs(
+                    static_block.position.y - block.position.y) <= BlockSize:
                 return 'bottom'
-
+            if block.position.x - static_block.position.x == BlockSize and abs(
+                    block.position.y - static_block.position.y) < BlockSize + block.velocity.y / FPS * g:
+                return 'left'
+            if static_block.position.x - block.position.x == BlockSize and abs(
+                    block.position.y - static_block.position.y) < BlockSize + block.velocity.y / FPS * g:
+                return 'right'
 
         return False
 
@@ -152,6 +159,7 @@ StaticBlocks = []
 CurrentPiece = stick
 MovingRight = False
 MovingLeft = False
+
 
 # Block operations
 def SpawnBlocks(Figure, MainFrame=Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, BlockSize * 20))):
@@ -191,20 +199,16 @@ running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_q:
-                SpawnBlocks(L)
-        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q and not ActiveBlocks:
+                SpawnBlocks(Square)
             if event.key == pygame.K_a:
                 MovingLeft = True
-
-        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_d:
                 MovingRight = True
+
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 MovingLeft = False
-
-        if event.type == pygame.KEYUP:
             if event.key == pygame.K_d:
                 MovingRight = False
 
@@ -214,23 +218,36 @@ while running:
     # Clean screen
     screen.fill((255, 255, 255))
 
-    # Update
-
-    for block in ActiveBlocks:
-        block.position += block.velocity / FPS * g
     # Check collision
     for block in ActiveBlocks:
         if MainFrame.CheckBorderCollision(block) == 'bottom' or MainFrame.CheckBlockCollision(block,
                                                                                               StaticBlocks) == 'bottom':
+            print('[LOG]: ' + str(MainFrame.CheckBlockCollision(block, StaticBlocks)))
             for activeblock in ActiveBlocks:
                 StaticBlocks.append(activeblock)
             ActiveBlocks.clear()
             break
 
+    # Update
+
+    for block in ActiveBlocks:
+        block.position += block.velocity / FPS * g
     if MovingRight:
-        MoveRight()
+        for block in ActiveBlocks:
+            if MainFrame.CheckBlockCollision(block, StaticBlocks) == 'right':
+                break
+            if MainFrame.CheckBorderCollision(block) == 'right':
+                break
+        else:
+            MoveRight()
     if MovingLeft:
-        MoveLeft()
+        for block in ActiveBlocks:
+            if MainFrame.CheckBlockCollision(block, StaticBlocks) == 'left':
+                break
+            if MainFrame.CheckBorderCollision(block) == 'left':
+                break
+        else:
+            MoveLeft()
     # Draw
     for block in ActiveBlocks:
         block.draw()
