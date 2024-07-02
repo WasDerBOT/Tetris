@@ -140,18 +140,20 @@ class Frame:
         return False
 
     def CheckBlockCollision(self, block, StaticBlocks):
+        contactSurface = 'none'
         for static_block in StaticBlocks:
             if static_block.position.x == block.position.x and abs(
                     static_block.position.y - block.position.y) <= BlockSize:
-                return 'bottom'
+                contactSurface = 'bottom'
+                break
             if block.position.x - static_block.position.x == BlockSize and abs(
-                    block.position.y - static_block.position.y) < BlockSize + block.velocity.y / FPS * g:
-                return 'left'
+                    block.position.y - static_block.position.y) < BlockSize * 0.95:
+                contactSurface = 'left'
             if static_block.position.x - block.position.x == BlockSize and abs(
-                    block.position.y - static_block.position.y) < BlockSize + block.velocity.y / FPS * g:
-                return 'right'
+                    block.position.y - static_block.position.y) < BlockSize * 0.95:
+                contactSurface = 'right'
 
-        return False
+        return contactSurface
 
 
 ActiveBlocks = []
@@ -161,7 +163,7 @@ MovingRight = False
 MovingLeft = False
 
 
-# Block operations
+# Block operations  
 def SpawnBlocks(Figure, MainFrame=Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, BlockSize * 20))):
     for i in range(len(Figure)):
         for j in range(len(Figure[i])):
@@ -197,10 +199,13 @@ pygame.display.flip()
 # Main loop
 running = True
 while running:
+    # hotkeys
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q and not ActiveBlocks:
-                SpawnBlocks(Square)
+                SpawnBlocks(Z)
+            if event.key == pygame.K_e and not ActiveBlocks:
+                SpawnBlocks(Flipped_Z)
             if event.key == pygame.K_a:
                 MovingLeft = True
             if event.key == pygame.K_d:
@@ -222,11 +227,11 @@ while running:
     for block in ActiveBlocks:
         if MainFrame.CheckBorderCollision(block) == 'bottom' or MainFrame.CheckBlockCollision(block,
                                                                                               StaticBlocks) == 'bottom':
-            print('[LOG]: ' + str(MainFrame.CheckBlockCollision(block, StaticBlocks)))
             for activeblock in ActiveBlocks:
                 StaticBlocks.append(activeblock)
             ActiveBlocks.clear()
             break
+
 
     # Update
 
@@ -253,7 +258,6 @@ while running:
         block.draw()
     for block in StaticBlocks:
         block.draw()
-
     # Draw
     MainFrame.draw()
     pygame.time.Clock().tick(FPS)
