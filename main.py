@@ -139,8 +139,7 @@ class Frame:
 
         return False
 
-    # TODO
-    # Make output as a list of collided sides instead of a string
+
     def CheckBlockCollision(self, block, StaticBlocks):
         contactSurface = []
         for static_block in StaticBlocks:
