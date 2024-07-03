@@ -139,19 +139,23 @@ class Frame:
 
         return False
 
+    # TODO
+    # Make output as a list of collided sides instead of a string
     def CheckBlockCollision(self, block, StaticBlocks):
-        contactSurface = 'none'
+        contactSurface = []
         for static_block in StaticBlocks:
             if static_block.position.x == block.position.x and abs(
                     static_block.position.y - block.position.y) <= BlockSize:
-                contactSurface = 'bottom'
-                break
+                contactSurface.append('bottom')
             if block.position.x - static_block.position.x == BlockSize and abs(
                     block.position.y - static_block.position.y) < BlockSize * 0.95:
-                contactSurface = 'left'
+                contactSurface.append('left')
             if static_block.position.x - block.position.x == BlockSize and abs(
                     block.position.y - static_block.position.y) < BlockSize * 0.95:
-                contactSurface = 'right'
+                contactSurface.append('right')
+            if block.position.y - static_block.position.y == BlockSize and abs(
+                    block.position.x - static_block.position.x) < BlockSize * 0.95:
+                contactSurface.append('top')
 
         return contactSurface
 
@@ -225,13 +229,12 @@ while running:
 
     # Check collision
     for block in ActiveBlocks:
-        if MainFrame.CheckBorderCollision(block) == 'bottom' or MainFrame.CheckBlockCollision(block,
-                                                                                              StaticBlocks) == 'bottom':
+        if MainFrame.CheckBorderCollision(block) == 'bottom' or 'bottom' in MainFrame.CheckBlockCollision(block,
+                                                                                                          StaticBlocks):
             for activeblock in ActiveBlocks:
                 StaticBlocks.append(activeblock)
             ActiveBlocks.clear()
             break
-
 
     # Update
 
@@ -239,7 +242,7 @@ while running:
         block.position += block.velocity / FPS * g
     if MovingRight:
         for block in ActiveBlocks:
-            if MainFrame.CheckBlockCollision(block, StaticBlocks) == 'right':
+            if 'right' in MainFrame.CheckBlockCollision(block, StaticBlocks):
                 break
             if MainFrame.CheckBorderCollision(block) == 'right':
                 break
@@ -247,7 +250,7 @@ while running:
             MoveRight()
     if MovingLeft:
         for block in ActiveBlocks:
-            if MainFrame.CheckBlockCollision(block, StaticBlocks) == 'left':
+            if 'left' in MainFrame.CheckBlockCollision(block, StaticBlocks):
                 break
             if MainFrame.CheckBorderCollision(block) == 'left':
                 break
