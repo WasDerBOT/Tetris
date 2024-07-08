@@ -140,23 +140,27 @@ class Frame:
 
         return contactSurface
 
+    # TODO
+    # Fix falling between 
     def CheckCollision(self, block, StaticBlocks):
         contactSurface = self.CheckBorderCollision(block)
         for static_block in StaticBlocks:
-            if static_block.position.x == block.position.x and abs(
-                    static_block.position.y - block.position.y) <= BlockSize:
+            if (static_block.position.x == block.position.x and
+                    BlockSize > static_block.position.y - block.position.y > 0):
                 contactSurface.append('bottom')
             if block.position.x - static_block.position.x == BlockSize and abs(
-                    block.position.y - static_block.position.y) < BlockSize * 0.95:
+                    block.position.y - static_block.position.y) <= BlockSize * 0.95:
                 contactSurface.append('left')
             if static_block.position.x - block.position.x == BlockSize and abs(
-                    block.position.y - static_block.position.y) < BlockSize * 0.95:
+                    block.position.y - static_block.position.y) <= BlockSize * 0.95:
                 contactSurface.append('right')
             if block.position.y - static_block.position.y == BlockSize and abs(
-                    block.position.x - static_block.position.x) < BlockSize * 0.95:
+                    block.position.x - static_block.position.x) <= BlockSize * 0.95:
                 contactSurface.append('top')
 
         contactSurface = list(set(contactSurface))
+        if contactSurface:
+            print(contactSurface)
         return contactSurface
 
 
