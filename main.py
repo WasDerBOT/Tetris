@@ -130,18 +130,18 @@ class Frame:
         pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.size.x, self.size.y), 2)
 
     def CheckBorderCollision(self, block):
-        if block.position.y + block.velocity.y / FPS * g + BlockSize > self.position.y + self.size.y:
-            return 'bottom'
-        if block.position.x + BlockSize >= self.position.x + self.size.x:
-            return 'right'
-        if block.position.x <= self.position.x:
-            return 'left'
-
-        return False
-
-
-    def CheckBlockCollision(self, block, StaticBlocks):
         contactSurface = []
+        if block.position.y + block.velocity.y / FPS * g + BlockSize > self.position.y + self.size.y:
+            contactSurface.append('bottom')
+        if block.position.x + BlockSize >= self.position.x + self.size.x:
+            contactSurface.append('right')
+        if block.position.x <= self.position.x:
+            contactSurface.append('left')
+
+        return contactSurface
+
+    def CheckCollision(self, block, StaticBlocks):
+        contactSurface = self.CheckBorderCollision(block)
         for static_block in StaticBlocks:
             if static_block.position.x == block.position.x and abs(
                     static_block.position.y - block.position.y) <= BlockSize:
@@ -156,6 +156,7 @@ class Frame:
                     block.position.x - static_block.position.x) < BlockSize * 0.95:
                 contactSurface.append('top')
 
+        contactSurface = list(set(contactSurface))
         return contactSurface
 
 
@@ -228,8 +229,8 @@ while running:
 
     # Check collision
     for block in ActiveBlocks:
-        if MainFrame.CheckBorderCollision(block) == 'bottom' or 'bottom' in MainFrame.CheckBlockCollision(block,
-                                                                                                          StaticBlocks):
+        if 'bottom' in MainFrame.CheckCollision(block,
+                                                StaticBlocks):
             for activeblock in ActiveBlocks:
                 StaticBlocks.append(activeblock)
             ActiveBlocks.clear()
@@ -241,18 +242,16 @@ while running:
         block.position += block.velocity / FPS * g
     if MovingRight:
         for block in ActiveBlocks:
-            if 'right' in MainFrame.CheckBlockCollision(block, StaticBlocks):
+            if 'right' in MainFrame.CheckCollision(block, StaticBlocks):
                 break
-            if MainFrame.CheckBorderCollision(block) == 'right':
-                break
+
         else:
             MoveRight()
     if MovingLeft:
         for block in ActiveBlocks:
-            if 'left' in MainFrame.CheckBlockCollision(block, StaticBlocks):
+            if 'left' in MainFrame.CheckCollision(block, StaticBlocks):
                 break
-            if MainFrame.CheckBorderCollision(block) == 'left':
-                break
+
         else:
             MoveLeft()
     # Draw
