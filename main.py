@@ -7,9 +7,15 @@ pygame.init()
 
 white = (255, 255, 255)
 black = (0, 0, 0)
-red = (255, 0, 0)
-green = (0, 255, 0)
 blue = (0, 0, 255)
+# Pieces colors
+cyan = (1, 237, 250)
+green = (83, 218, 63)
+yellow = (254, 251, 52)
+purple = (221, 10, 178)
+red = (234, 20, 28)
+navy = (46, 46, 132)
+orange = (255, 200, 46)
 
 # Constants
 FPS = 60
@@ -20,49 +26,111 @@ m = 1  # Moving to the side
 # Tetrominos
 
 stick = [
-    [1, 1, 1, 1],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [[0, 0, 0, 0],
+     [1, 1, 1, 1],
+     [0, 0, 0, 0],
+     [0, 0, 0, 0]],
+    [[0, 0, 1, 0],
+     [0, 0, 1, 0],
+     [0, 0, 1, 0],
+     [0, 0, 1, 0]],
+    [[0, 0, 0, 0],
+     [0, 0, 0, 0],
+     [1, 1, 1, 1],
+     [0, 0, 0, 0]],
+    [[0, 1, 0, 0],
+     [0, 1, 0, 0],
+     [0, 1, 0, 0],
+     [0, 1, 0, 0]]
 ]
 
 L = [
-    [0, 0, 1, 0],
-    [1, 1, 1, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [[0, 0, 1],
+     [1, 1, 1],
+     [0, 0, 0]],
+    [[0, 1, 0],
+     [0, 1, 0],
+     [0, 1, 1]],
+    [[0, 0, 0],
+     [1, 1, 1],
+     [1, 0, 0]],
+    [[1, 1, 0],
+     [0, 1, 0],
+     [0, 1, 0]]
 ]
 Flipped_L = [
-    [1, 0, 0, 0],
-    [1, 1, 1, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [[1, 0, 0],
+     [1, 1, 1],
+     [0, 0, 0]],
+    [[0, 0, 1],
+     [0, 1, 1],
+     [0, 1, 0]],
+    [[0, 0, 0],
+     [1, 1, 1],
+     [0, 1, 0]],
+    [[0, 1, 0],
+     [1, 1, 0],
+     [1, 0, 0]]
 ]
 Z = [
-    [1, 1, 0, 0],
-    [0, 1, 1, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [[1, 1, 0],
+     [0, 1, 1],
+     [0, 0, 0]],
+    [[0, 0, 1],
+     [0, 1, 1],
+     [0, 1, 0]],
+    [[0, 0, 0],
+     [1, 1, 0],
+     [0, 1, 1]],
+    [[0, 1, 0],
+     [1, 1, 0],
+     [1, 0, 0]]
 ]
 Flipped_Z = [
-    [0, 1, 1, 0],
-    [1, 1, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [[0, 1, 1],
+     [1, 1, 0],
+     [0, 0, 0]],
+    [[0, 1, 0],
+     [0, 1, 1],
+     [0, 0, 1]],
+    [[0, 0, 0],
+     [1, 1, 0],
+     [1, 1, 0]],
+    [[1, 0, 0],
+     [1, 1, 0],
+     [0, 1, 0]]
 ]
 Square = [
-    [1, 1, 0, 0],
-    [1, 1, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [[1, 1, 0],
+     [1, 1, 0],
+     [0, 0, 0]],
+    [[1, 1, 0],
+     [1, 1, 0],
+     [0, 0, 0]],
+    [[1, 1, 0],
+     [1, 1, 0],
+     [0, 0, 0]],
+    [[1, 1, 0],
+     [1, 1, 0],
+     [0, 0, 0]],
 ]
 T = [
-    [0, 1, 0, 0],
-    [1, 1, 1, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
+    [[0, 1, 0],
+     [1, 1, 1],
+     [0, 0, 0]],
+    [[0, 1, 0],
+     [0, 1, 1],
+     [0, 1, 0]],
+    [[0, 0, 0],
+     [1, 1, 1],
+     [0, 1, 0]],
+    [[0, 1, 0],
+     [1, 1, 0],
+     [0, 1, 0]]
 ]
 Pieces = [stick, L, Flipped_L, Z, Flipped_Z, Square, T]
+ColorMathes = dict(stick = cyan, L = blue, Flipped_L = purple, Z = red, Flipped_Z = orange, Square = yellow, T = green)
+
 # Pygame defines
 
 screen = pygame.display.set_mode((12 * BlockSize, 22 * BlockSize))
@@ -125,9 +193,17 @@ class Frame:
         self.color = color
         self.position = position
         self.size = size
+        self.spawnPosition = Vector(self.size.x / 2 - 2 * BlockSize + self.position.x, self.position.y)
 
     def draw(self):
         pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.size.x, self.size.y), 2)
+
+    def process(self):
+        if ActiveBlocks:
+            self.spawnPosition += block.velocity / FPS * g
+
+    def refreshSpawn(self):
+        self.spawnPosition = Vector(self.size.x / 2 - 2 * BlockSize + self.position.x, self.position.y)
 
     def CheckBorderCollision(self, block):
         contactSurface = []
@@ -140,8 +216,6 @@ class Frame:
 
         return contactSurface
 
-    # TODO
-    # Fix falling between 
     def CheckCollision(self, block, StaticBlocks):
         contactSurface = self.CheckBorderCollision(block)
         for static_block in StaticBlocks:
@@ -159,8 +233,6 @@ class Frame:
                 contactSurface.append('top')
 
         contactSurface = list(set(contactSurface))
-        if contactSurface:
-            print(contactSurface)
         return contactSurface
 
 
@@ -169,16 +241,22 @@ StaticBlocks = []
 CurrentPiece = stick
 MovingRight = False
 MovingLeft = False
+center = False
+status = 0
 
 
-# Block operations  
-def SpawnBlocks(Figure, MainFrame=Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, BlockSize * 20))):
+# Block operations
+def SpawnBlocks(Figure, spawnposition):
+    color = cyan
+    #color = ColorMathes.get(Figure)
+    Figure = Figure[status]
+
     for i in range(len(Figure)):
         for j in range(len(Figure[i])):
             if Figure[i][j] == 1:
-                ActiveBlocks.append(Block(blue, Vector(
-                    MainFrame.size.x / 2 - 2 * BlockSize + MainFrame.position.x + j * BlockSize,
-                    MainFrame.position.y + i * BlockSize), Vector(0, BlockSize)))
+                ActiveBlocks.append(Block(color, spawnposition + Vector(
+                    j * BlockSize,
+                    i * BlockSize), Vector(0, BlockSize)))
 
 
 def MoveLeft():
@@ -186,6 +264,7 @@ def MoveLeft():
         block.position -= Vector(BlockSize, 0)
     global MovingLeft
     MovingLeft = False
+    MainFrame.spawnPosition -= Vector(BlockSize, 0)
 
 
 def MoveRight():
@@ -193,10 +272,22 @@ def MoveRight():
         block.position += Vector(BlockSize, 0)
     global MovingRight
     MovingRight = False
+    MainFrame.spawnPosition += Vector(BlockSize, 0)
 
 
-def Rotate():
-    pass
+def RotateRight():
+    global status
+    status += 1
+    status = status % 4
+    ActiveBlocks.clear()
+    SpawnBlocks(CurrentPiece, MainFrame.spawnPosition)
+
+
+def MoveDown():
+    for block in ActiveBlocks:
+        block.position += Vector(0, BlockSize)
+    global center
+    center = False
 
 
 MainFrame = Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, BlockSize * 20))
@@ -211,26 +302,33 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q and not ActiveBlocks:
-                SpawnBlocks(Z)
-            if event.key == pygame.K_e and not ActiveBlocks:
-                SpawnBlocks(Flipped_Z)
+                SpawnBlocks(Z, MainFrame.spawnPosition)
+            if event.key == pygame.K_w:
+                RotateRight()
             if event.key == pygame.K_a:
                 MovingLeft = True
             if event.key == pygame.K_d:
                 MovingRight = True
+            if event.key == pygame.K_r:
+                center = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 MovingLeft = False
             if event.key == pygame.K_d:
                 MovingRight = False
-
+            if event.key == pygame.K_r:
+                center = False
         if event.type == pygame.QUIT:
             running = False
 
     # Clean screen
     screen.fill((255, 255, 255))
 
+    # Spawn
+    if not ActiveBlocks:
+        CurrentPiece = random.choice(Pieces)
+        SpawnBlocks(CurrentPiece, MainFrame.spawnPosition)
     # Check collision
     for block in ActiveBlocks:
         if 'bottom' in MainFrame.CheckCollision(block,
@@ -238,10 +336,11 @@ while running:
             for activeblock in ActiveBlocks:
                 StaticBlocks.append(activeblock)
             ActiveBlocks.clear()
+            MainFrame.refreshSpawn()
             break
 
     # Update
-
+    MainFrame.process()
     for block in ActiveBlocks:
         block.position += block.velocity / FPS * g
     if MovingRight:
@@ -255,7 +354,6 @@ while running:
         for block in ActiveBlocks:
             if 'left' in MainFrame.CheckCollision(block, StaticBlocks):
                 break
-
         else:
             MoveLeft()
     # Draw
@@ -263,7 +361,9 @@ while running:
         block.draw()
     for block in StaticBlocks:
         block.draw()
-    # Draw
+
+    pygame.draw.rect(screen, black, (MainFrame.spawnPosition.x, MainFrame.spawnPosition.y, 40, 40), 4)
+
     MainFrame.draw()
     pygame.time.Clock().tick(FPS)
     pygame.display.flip()
