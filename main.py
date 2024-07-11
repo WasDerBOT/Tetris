@@ -94,7 +94,7 @@ Flipped_Z = [
      [0, 1, 1],
      [0, 0, 1]],
     [[0, 0, 0],
-     [1, 1, 0],
+     [0, 1, 1],
      [1, 1, 0]],
     [[1, 0, 0],
      [1, 1, 0],
@@ -129,7 +129,7 @@ T = [
      [0, 1, 0]]
 ]
 Pieces = [stick, L, Flipped_L, Z, Flipped_Z, Square, T]
-ColorMathes = dict(stick = cyan, L = blue, Flipped_L = purple, Z = red, Flipped_Z = orange, Square = yellow, T = green)
+ColorMathes = dict(stick=cyan, L=blue, Flipped_L=purple, Z=red, Flipped_Z=orange, Square=yellow, T=green)
 
 # Pygame defines
 
@@ -245,12 +245,29 @@ center = False
 status = 0
 
 
+def CheckIntersection(block: Vector, another):
+    if block.x < another.x or block.y < another.y:
+        return False
+    if block.x > another.x + BlockSize or block.y > another.y + BlockSize:
+        return False
+    return True
+
+
+def CheckSpawnpability(Figure, spawnposition):
+    for i in range(len(Figure)):
+        for j in range(len(Figure[i])):
+            if Figure[i][j] == 1:
+                for block in ActiveBlocks:
+                    if CheckIntersection(block.position, spawnposition + Vector(j * BlockSize, i * BlockSize)):
+                        return False
+    return True
+
+
 # Block operations
 def SpawnBlocks(Figure, spawnposition):
     color = cyan
-    #color = ColorMathes.get(Figure)
+    # color = ColorMathes.get(Figure)
     Figure = Figure[status]
-
     for i in range(len(Figure)):
         for j in range(len(Figure[i])):
             if Figure[i][j] == 1:
@@ -329,12 +346,13 @@ while running:
     if not ActiveBlocks:
         CurrentPiece = random.choice(Pieces)
         SpawnBlocks(CurrentPiece, MainFrame.spawnPosition)
-    # Check collision
+    # Check collisiond
     for block in ActiveBlocks:
         if 'bottom' in MainFrame.CheckCollision(block,
                                                 StaticBlocks):
             for activeblock in ActiveBlocks:
                 StaticBlocks.append(activeblock)
+            status = 0
             ActiveBlocks.clear()
             MainFrame.refreshSpawn()
             break
