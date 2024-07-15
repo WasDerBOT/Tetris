@@ -278,6 +278,18 @@ def CheckSpawnpability(Figure, spawnposition):
                         return False
 
     return True
+def CancelOut():
+    for line in range(MainFrame.position.y + MainFrame.size.y - BlockSize, MainFrame.position.y, -BlockSize):
+        itter = 0
+        temp = []
+        for block in StaticBlocks:
+
+            if (block.position.y == line):
+                itter += 1
+                temp.append(block)
+            if itter == 10:
+                for block in temp:
+                    StaticBlocks.remove(block)
 
 
 # Block operations
@@ -395,7 +407,8 @@ while running:
             ActiveBlocks.clear()
             MainFrame.refreshSpawn()
             break
-
+    #Check canceling out
+    CancelOut()
     # Update
     MainFrame.process()
     for block in ActiveBlocks:
