@@ -62,15 +62,15 @@ Flipped_L = [
     [[1, 0, 0],
      [1, 1, 1],
      [0, 0, 0]],
-    [[0, 0, 1],
-     [0, 1, 1],
+    [[0, 1, 1],
+     [0, 1, 0],
      [0, 1, 0]],
     [[0, 0, 0],
      [1, 1, 1],
-     [0, 1, 0]],
+     [0, 0, 1]],
     [[0, 1, 0],
-     [1, 1, 0],
-     [1, 0, 0]]
+     [0, 1, 0],
+     [1, 1, 0]]
 ]
 Z = [
     [[1, 1, 0],
@@ -129,7 +129,14 @@ T = [
      [0, 1, 0]]
 ]
 Pieces = [stick, L, Flipped_L, Z, Flipped_Z, Square, T]
-ColorMathes = dict(stick=cyan, L=blue, Flipped_L=purple, Z=red, Flipped_Z=orange, Square=yellow, T=green)
+ColorMathes = dict()
+ColorMathes['stick'] = cyan
+ColorMathes['L'] = blue
+ColorMathes['Flipped_L'] = purple
+ColorMathes['Z'] = yellow
+ColorMathes['Flipped_Z'] = orange
+ColorMathes['Square'] = green
+ColorMathes['T'] = red
 
 # Pygame defines
 
@@ -246,9 +253,18 @@ status = 0
 
 
 def CheckIntersection(block: Vector, another):
-    if block.x < another.x or block.y < another.y:
+    if another.x < MainFrame.position.x or another.y < MainFrame.position.y:
+        return True
+    if (another.x + BlockSize > MainFrame.position.x + MainFrame.size.x or
+            another.y + BlockSize > MainFrame.position.y + MainFrame.size.y):
+        return True
+    if block.x < another.x - BlockSize:
         return False
-    if block.x > another.x + BlockSize or block.y > another.y + BlockSize:
+    if block.y < another.y - BlockSize:
+        return False
+    if block.x > another.x + BlockSize:
+        return False
+    if block.y > another.y + BlockSize:
         return False
     return True
 
@@ -257,9 +273,10 @@ def CheckSpawnpability(Figure, spawnposition):
     for i in range(len(Figure)):
         for j in range(len(Figure[i])):
             if Figure[i][j] == 1:
-                for block in ActiveBlocks:
+                for block in StaticBlocks:
                     if CheckIntersection(block.position, spawnposition + Vector(j * BlockSize, i * BlockSize)):
                         return False
+
     return True
 
 
@@ -294,6 +311,8 @@ def MoveRight():
 
 def RotateRight():
     global status
+    if not (CheckSpawnpability(CurrentPiece[(status + 1) % 4], MainFrame.spawnPosition)):
+        return
     status += 1
     status = status % 4
     ActiveBlocks.clear()
@@ -312,6 +331,9 @@ MainFrame = Frame(black, Vector(BlockSize, BlockSize), Vector(BlockSize * 10, Bl
 # Filling screen
 screen.fill(white)
 pygame.display.flip()
+CurrentPiece = random.choice(Pieces)
+SpawnBlocks(CurrentPiece, MainFrame.spawnPosition)
+MainFrame.draw()
 # Main loop
 running = True
 while running:
@@ -345,7 +367,10 @@ while running:
     # Spawn
     if not ActiveBlocks:
         CurrentPiece = random.choice(Pieces)
-        SpawnBlocks(CurrentPiece, MainFrame.spawnPosition)
+        if not CheckSpawnpability(CurrentPiece[0], MainFrame.spawnPosition):
+            running = False
+        else:
+            SpawnBlocks(CurrentPiece, MainFrame.spawnPosition)
     # Check collisiond
     for block in ActiveBlocks:
         if 'bottom' in MainFrame.CheckCollision(block,
@@ -379,8 +404,6 @@ while running:
         block.draw()
     for block in StaticBlocks:
         block.draw()
-
-    pygame.draw.rect(screen, black, (MainFrame.spawnPosition.x, MainFrame.spawnPosition.y, 40, 40), 4)
 
     MainFrame.draw()
     pygame.time.Clock().tick(FPS)
