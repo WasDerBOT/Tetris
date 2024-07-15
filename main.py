@@ -15,7 +15,7 @@ yellow = (254, 251, 52)
 purple = (221, 10, 178)
 red = (234, 20, 28)
 navy = (46, 46, 132)
-orange = (255, 200, 46)
+orange = (255, 145, 12)
 
 # Constants
 FPS = 60
@@ -140,7 +140,7 @@ ColorMathes['T'] = red
 
 # Pygame defines
 
-screen = pygame.display.set_mode((12 * BlockSize, 22 * BlockSize))
+screen = pygame.display.set_mode((15 * BlockSize, 22 * BlockSize))
 pygame.display.set_caption("Tetris")
 
 
@@ -192,7 +192,7 @@ class Block:
 
     def draw(self):
         pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, 40, 40))
-        pygame.draw.rect(screen, black, (self.position.x, self.position.y, 40, 40), 4)
+        pygame.draw.rect(screen, (0, 0, 0, 50), (self.position.x, self.position.y, 40, 40), 2)
 
 
 class Frame:
@@ -227,16 +227,16 @@ class Frame:
         contactSurface = self.CheckBorderCollision(block)
         for static_block in StaticBlocks:
             if (static_block.position.x == block.position.x and
-                    BlockSize > static_block.position.y - block.position.y > 0):
+                    BlockSize > static_block.position.y - block.position.y >= -block.velocity.y / FPS * g):
                 contactSurface.append('bottom')
             if block.position.x - static_block.position.x == BlockSize and abs(
-                    block.position.y - static_block.position.y) <= BlockSize * 0.95:
+                    block.position.y - static_block.position.y) <= BlockSize * 0.99:
                 contactSurface.append('left')
             if static_block.position.x - block.position.x == BlockSize and abs(
-                    block.position.y - static_block.position.y) <= BlockSize * 0.95:
+                    block.position.y - static_block.position.y) <= BlockSize * 0.99:
                 contactSurface.append('right')
             if block.position.y - static_block.position.y == BlockSize and abs(
-                    block.position.x - static_block.position.x) <= BlockSize * 0.95:
+                    block.position.x - static_block.position.x) <= BlockSize * 0.99:
                 contactSurface.append('top')
 
         contactSurface = list(set(contactSurface))
@@ -283,7 +283,20 @@ def CheckSpawnpability(Figure, spawnposition):
 # Block operations
 def SpawnBlocks(Figure, spawnposition):
     color = cyan
-    # color = ColorMathes.get(Figure)
+    if Figure == stick:
+        color = cyan
+    elif Figure == L:
+        color = orange
+    elif Figure == Flipped_L:
+        color = blue
+    elif Figure == Z:
+        color = red
+    elif Figure == Flipped_Z:
+        color = green
+    elif Figure == Square:
+        color = yellow
+    elif Figure == T:
+        color = purple
     Figure = Figure[status]
     for i in range(len(Figure)):
         for j in range(len(Figure[i])):
@@ -368,14 +381,15 @@ while running:
     if not ActiveBlocks:
         CurrentPiece = random.choice(Pieces)
         if not CheckSpawnpability(CurrentPiece[0], MainFrame.spawnPosition):
-            running = False
+            pass
         else:
             SpawnBlocks(CurrentPiece, MainFrame.spawnPosition)
-    # Check collisiond
+    # Check collision
     for block in ActiveBlocks:
         if 'bottom' in MainFrame.CheckCollision(block,
                                                 StaticBlocks):
             for activeblock in ActiveBlocks:
+                activeblock.position.y = ((activeblock.position.y + BlockSize / 2) // BlockSize * BlockSize)
                 StaticBlocks.append(activeblock)
             status = 0
             ActiveBlocks.clear()
